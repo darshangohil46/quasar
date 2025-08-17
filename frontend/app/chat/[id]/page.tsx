@@ -6,73 +6,34 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Send, Bot, User } from "lucide-react";
 import Header from "@/components/Header";
+import axios from "axios";
+import { useParams } from "next/navigation";
+import { ROLE } from "@/lib/utils";
+import Loading from "@/app/Loading";
 
 interface Message {
   id: string;
   content: string;
-  role: "user" | "assistant";
+  role: any;
   timestamp: Date;
 }
 
+// {
+//   id: "1",
+//   content: "Hello! I'm your AI assistant. How can I help you today?",
+//   role: "assistant",
+//   timestamp: new Date(),
+// },
+
 export default function ChatBot() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      content: "Hello! I'm your AI assistant. How can I help you today?",
-      role: "assistant",
-      timestamp: new Date(),
-    },
-    {
-      id: "1",
-      content: "Hello! I'm your AI assistant. How can I help you today?",
-      role: "assistant",
-      timestamp: new Date(),
-    },
-    {
-      id: "2",
-      content: "Hello! I'm your AI assistant. How can I help you today?",
-      role: "user",
-      timestamp: new Date(),
-    },
-    {
-      id: "3",
-      content: "Hello! I'm your AI assistant. How can I help you today?",
-      role: "assistant",
-      timestamp: new Date(),
-    },
-    {
-      id: "4",
-      content: "Hello! I'm your AI assistant. How can I help you today?",
-      role: "assistant",
-      timestamp: new Date(),
-    },
-    {
-      id: "5",
-      content: "Hello! I'm your AI assistant. How can I help you today?",
-      role: "assistant",
-      timestamp: new Date(),
-    },
-    {
-      id: "6",
-      content: "Hello! I'm your AI assistant. How can I help you today?",
-      role: "user",
-      timestamp: new Date(),
-    },
-    {
-      id: "7",
-      content: "Hello! I'm your AI assistant. How can I help you today?",
-      role: "assistant",
-      timestamp: new Date(),
-    },
-    {
-      id: "8",
-      content: "Hello! I'm your AI assistant. How can I help you today?",
-      role: "assistant",
-      timestamp: new Date(),
-    },
-  ]);
+  const params = useParams();
+  const { id } = params; // chat id from URL
+  console.log(id);
+
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -83,33 +44,71 @@ export default function ChatBot() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+
+    const fetchChat = async () => {
+      try {
+        const res = await axios.post(`/api/chat/${id}`);
+        setMessages(res.data.data || []);
+      } catch (error) {
+        console.error("Error loading chat:", error);
+        setLoading(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchChat();
+  }, [id]);
+
+  const handleSendToBackend = async (newMessage: Message) => {
+    try {
+      const res = await axios.post(`/api/chat/${id}`, {
+        message: newMessage,
+      });
+      return res.data;
+    } catch (error) {
+      console.error("Error sending message:", error);
+      return null;
+    }
+  };
+
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       content: input,
-      role: "user",
+      role: ROLE.USER,
       timestamp: new Date(),
     };
 
+    // Add user message immediately
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    // Send to backend and persist
+    const data = await handleSendToBackend(userMessage);
+
+    if (data?.reply) {
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content:
-          "Thanks for your message! This is a demo response. In a real implementation, this would connect to your AI service.",
-        role: "assistant",
+        content: data.reply,
+        role: ROLE.ASSISTANT,
         timestamp: new Date(),
       };
+
       setMessages((prev) => [...prev, aiMessage]);
-      setIsTyping(false);
-    }, 1500);
+    }
+
+    setIsTyping(false);
   };
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <Header>
@@ -137,7 +136,7 @@ export default function ChatBot() {
               >
                 <p className="text-sm leading-relaxed">{message.content}</p>
                 <p className="text-xs mt-2 opacity-70">
-                  {message.timestamp.toLocaleTimeString([], {
+                  {new Date(message.timestamp).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
@@ -174,15 +173,9 @@ export default function ChatBot() {
           <div ref={messagesEndRef} />
         </div>
       </div>
-      <div
-        className="fixed bottom-0 left-0 right-0 bg-gray-900/70 backdrop-blur-md 
-                  border-t border-purple-500/30 shadow-xl z-50"
-      >
+      <div className="fixed bottom-0 left-0 right-0 bg-gray-900/70 backdrop-blur-md border-t border-purple-500/30 shadow-xl z-50">
         <div className="max-w-4xl mx-auto px-4 py-4">
-          <Card
-            className="p-2 bg-gradient-to-br from-gray-800/90 via-gray-900/90 to-gray-800/90 
-                      border border-purple-500/30 shadow-lg shadow-purple-600/30 backdrop-blur-sm"
-          >
+          <Card className="p-2 bg-gradient-to-br from-gray-800/90 via-gray-900/90 to-gray-800/90 border border-purple-500/30 shadow-lg shadow-purple-600/30 backdrop-blur-sm">
             <div className="flex gap-2">
               <Input
                 type="text"
@@ -195,15 +188,12 @@ export default function ChatBot() {
                   }
                 }}
                 placeholder="Type your message..."
-                className="flex-1 bg-transparent text-white placeholder:text-gray-400 
-                       focus:ring-2 focus:ring-purple-500/30 focus:outline-none border-none"
+                className="flex-1 bg-transparent text-white placeholder:text-gray-400 focus:ring-2 focus:ring-purple-500/30 focus:outline-none border-none"
               />
               <Button
                 onClick={handleSend}
                 disabled={!input.trim() || isTyping}
-                className="bg-gradient-to-r from-blue-700 via-blue-700 to-blue-600 text-white 
-                       rounded-xl px-4 py-2 shadow-md shadow-purple-500/40 transition-all duration-300 
-                       hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                className="bg-gradient-to-r from-blue-700 via-blue-700 to-blue-600 text-white rounded-xl px-4 py-2 shadow-md shadow-purple-500/40 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
               >
                 <Send className="w-4 h-4" />
               </Button>

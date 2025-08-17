@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -152,3 +156,5 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=14),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")

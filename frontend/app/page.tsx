@@ -2,10 +2,55 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Camera, FileImage, Upload, Globe, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Header from "@/components/Header";
+import { useAuth } from "@/context/AuthContext";
+import { useState } from "react";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { ALLROUTER, CHATBOT_NAME, ROLE } from "@/lib/utils";
+import { v4 as uuidv4 } from "uuid";
+import Loading from "./Loading";
 
 export default function HomePage() {
+  const router = useRouter();
+  const { user } = useAuth();
+
+  const [inputData, setInputData] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!user?.username && !inputData.trim()) return;
+
+    setLoading(true);
+    const chatData = {
+      username: user?.username,
+      title: inputData.slice(0, 12) + "...",
+      history: [
+        {
+          id: uuidv4(),
+          content: inputData,
+          role: ROLE.USER,
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    };
+    try {
+      const res = await axios.post("/api/chat", chatData);
+      setLoading(false);
+      router.push(`${ALLROUTER.CHAT}/${res.data.data.id}`);
+    } catch (error) {
+      setLoading(false);
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     <Header>
       {/* Main Content */}
@@ -19,46 +64,16 @@ export default function HomePage() {
           <div className="relative mb-8">
             <div className="relative">
               <Input
-                placeholder="Ask v0 to build..."
+                onChange={(e) => setInputData(e.target.value)}
+                placeholder={`Ask ${CHATBOT_NAME} to build...`}
                 className="w-full h-16 px-6 text-lg bg-gray-900 border-gray-700 rounded-xl focus:border-gray-600 focus:ring-0"
               />
               <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                 <Button
                   size="sm"
-                  variant="ghost"
-                  className="text-gray-400 hover:text-white"
-                >
-                  <span className="text-xs">+</span>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-gray-400 hover:text-white"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  </svg>
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-teal-600 hover:bg-teal-700 text-white px-3"
-                >
-                  Agent
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-gray-400 hover:text-white"
+                  className="text-gray-400"
+                  type="button"
+                  onClick={() => handleSubmit()}
                 >
                   <svg
                     className="w-4 h-4"
@@ -79,7 +94,7 @@ export default function HomePage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="flex flex-wrap justify-center gap-4 mb-20">
+          {/* <div className="flex flex-wrap justify-center gap-4 mb-20">
             <Button
               variant="outline"
               className="bg-gray-900 border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
@@ -108,7 +123,7 @@ export default function HomePage() {
               <Globe className="w-4 h-4 mr-2" />
               Landing Page
             </Button>
-          </div>
+          </div> */}
         </div>
       </main>
 
@@ -119,7 +134,7 @@ export default function HomePage() {
             <div>
               <h2 className="text-xl font-semibold mb-2">From the Community</h2>
               <p className="text-gray-400">
-                Explore what the community is building with v0.
+                Explore what the community is building with {CHATBOT_NAME}.
               </p>
             </div>
             <Button variant="ghost" className="text-gray-400 hover:text-white">

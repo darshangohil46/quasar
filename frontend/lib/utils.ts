@@ -11,5 +11,10 @@ export const ALLROUTER = {
   LOGIN: "/login",
   REGISTER: "/register",
   HOME: "/",
-  ALLCHAT: "/chat",
+  CHAT: "/chat",
+};
+
+export const ROLE = {
+  USER: "user",
+  ASSISTANT: "assistant",
 };
