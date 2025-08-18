@@ -10,11 +10,16 @@ from django.core.serializers.json import DjangoJSONEncoder
 import os
 import google.generativeai as genai
 from datetime import datetime
-import requests
+import requests, uuid
 
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_AI_MODEL = os.getenv("GROQ_AI_MODEL")
+
+
+USER = "user"
+ASSISTANT = "assistant"
+SYSTEM = "system"
 
 
 # done
@@ -24,11 +29,29 @@ def chat_with_groq(history):
         return {"status": "error", "error": "History is not available"}
 
     try:
-        # history: [{id, content, role, timestamp}, {...}]
+        # Predefined system/context data
+        predefined_messages = [
+            {
+                "role": SYSTEM,
+                "content": (
+                    "You are a helpful Quasar AI assistant. Always reply politely. "
+                    "Keep answers short and clear unless detailed explanation is asked."
+                ),
+            },
+            {
+                "role": ASSISTANT,
+                "content": "Hello! I'm here to help you with your questions.",
+            },
+        ]
+
+        # Convert user history to groq format
         groq_messages = [
-            {"role": msg.get("role", "user"), "content": msg.get("content", "")}
+            {"role": msg.get("role", USER), "content": msg.get("content", "")}
             for msg in history
         ]
+
+        # Merge predefined + history
+        all_messages = predefined_messages + groq_messages
 
         response = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
@@ -38,24 +61,22 @@ def chat_with_groq(history):
             },
             json={
                 "model": GROQ_AI_MODEL,
-                "messages": groq_messages,
+                "messages": all_messages,
             },
         )
 
         response.raise_for_status()
         data = response.json()
 
-        # Extract AI response
         ai_content = data["choices"][0]["message"]["content"]
 
-        # Create new assistant message in your format
         assistant_message = {
             "status": "success",
             "data": {
-                "id": str(len(history) + 1),
+                "id": str(uuid.uuid4()),
                 "content": ai_content,
-                "role": "assistant",
-                "timestamp": datetime.utcnow().isoformat(),
+                "role": ASSISTANT,
+                "timestamp": datetime.now().isoformat(),
             },
         }
 
@@ -90,11 +111,18 @@ def create_chat_history(request):
             body = json.loads(request.body.decode("utf-8"))
             username = body.get("username")
             title = body.get("title", "New Chat")
-            history = body.get("history", [])
+            message = body.get("message")
+
+            history = [
+                {
+                    "id": str(uuid.uuid4()),
+                    "content": message,
+                    "role": USER,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            ]
 
             user = User.objects.get(username=username)
-
-            # user = User.objects.get(id=current_user)
             if not user:
                 return JsonResponse(
                     {"success": False, "error": "User not found"},
@@ -134,22 +162,35 @@ def create_chat_history(request):
 
 # Append a new message to an existing chat
 @csrf_exempt
-def add_message(request, chat_id):
+def add_message(request):
+    print(USER, ASSISTANT)
+
     if request.method == "POST":
         try:
             body = json.loads(request.body.decode("utf-8"))
             message = body.get("message")
+            chat_id = body.get("chat_id")
 
             chat = ChatHistory.objects.get(id=chat_id)
             updated_history = chat.history
+
             updated_history.append(message)
+            reply_of_ai = chat_with_groq(history=updated_history)
+            print(reply_of_ai)
+            if reply_of_ai["status"] == "success":
+                updated_history.append(reply_of_ai["data"])
 
-            chat.history = updated_history
-            chat.updated_at = now()
-            chat.save()
+                chat.history = updated_history
+                chat.updated_at = now()
+                chat.save()
 
+                return JsonResponse(
+                    {"success": True, "data": reply_of_ai["data"]},
+                    encoder=DjangoJSONEncoder,
+                )
             return JsonResponse(
-                {"success": True, "data": chat.history}, encoder=DjangoJSONEncoder
+                {"success": False, "data": "Something went wrong"},
+                encoder=DjangoJSONEncoder,
             )
         except ChatHistory.DoesNotExist:
             return JsonResponse(
@@ -157,30 +198,6 @@ def add_message(request, chat_id):
             )
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)}, status=400)
-
-
-@csrf_exempt
-def save_chat_history(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            username = data.get("username")
-            history = data.get("history")
-
-            if not user_id or not history:
-                return JsonResponse(
-                    {"error": "user_id and history are required"}, status=400
-                )
-
-            chat_history = ChatHistory.objects.create(user_id=user_id, history=history)
-            return JsonResponse(
-                {"message": "Chat history saved successfully", "id": chat_history.id},
-                status=201,
-            )
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-    else:
-        return JsonResponse({"error": "Invalid HTTP method"}, status=405)
 
 
 # done
@@ -204,6 +221,30 @@ def get_chat_history(request):
             return JsonResponse({"error": str(e)}, status=500)
     else:
         return JsonResponse({"error": "Invalid HTTP method"}, status=405)
+
+
+# @csrf_exempt
+# def save_chat_history(request):
+#     if request.method == "POST":
+#         try:
+#             data = json.loads(request.body)
+#             username = data.get("username")
+#             history = data.get("history")
+
+#             if not user_id or not history:
+#                 return JsonResponse(
+#                     {"error": "user_id and history are required"}, status=400
+#                 )
+
+#             chat_history = ChatHistory.objects.create(user_id=user_id, history=history)
+#             return JsonResponse(
+#                 {"message": "Chat history saved successfully", "id": chat_history.id},
+#                 status=201,
+#             )
+#         except Exception as e:
+#             return JsonResponse({"error": str(e)}, status=500)
+#     else:
+#         return JsonResponse({"error": "Invalid HTTP method"}, status=405)
 
 
 # def chat_with_groq(request):

@@ -21,7 +21,7 @@ interface Message {
 // {
 //   id: "1",
 //   content: "Hello! I'm your AI assistant. How can I help you today?",
-//   role: "assistant",
+//   role: "assistant" | "user"
 //   timestamp: new Date(),
 // },
 
@@ -64,8 +64,9 @@ export default function ChatBot() {
 
   const handleSendToBackend = async (newMessage: Message) => {
     try {
-      const res = await axios.post(`/api/chat/${id}`, {
+      const res = await axios.post(`/api/chat/add-message/`, {
         message: newMessage,
+        chat_id: id,
       });
       return res.data;
     } catch (error) {
@@ -92,17 +93,9 @@ export default function ChatBot() {
     // Send to backend and persist
     const data = await handleSendToBackend(userMessage);
 
-    if (data?.reply) {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: data.reply,
-        role: ROLE.ASSISTANT,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, aiMessage]);
+    if (data?.success) {
+      setMessages((prev) => [...prev, data.data]);
     }
-
     setIsTyping(false);
   };
 

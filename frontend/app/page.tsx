@@ -25,18 +25,19 @@ export default function HomePage() {
     setLoading(true);
     const chatData = {
       username: user?.username,
-      title: inputData.slice(0, 12) + "...",
-      history: [
-        {
-          id: uuidv4(),
-          content: inputData,
-          role: ROLE.USER,
-          timestamp: new Date().toISOString(),
-        },
-      ],
+      title: inputData.slice(0, 20) + "...",
+      message: inputData,
     };
+    //  [
+    //   {
+    //     id: uuidv4(),
+    //     content: inputData,
+    //     role: ROLE.USER,
+    //     timestamp: new Date().toISOString(),
+    //   },
+    // ],
     try {
-      const res = await axios.post("/api/chat", chatData);
+      const res = await axios.post("/api/chat/", chatData);
       setLoading(false);
       router.push(`${ALLROUTER.CHAT}/${res.data.data.id}`);
     } catch (error) {
