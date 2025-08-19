@@ -5,6 +5,7 @@ import { X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import Link from "next/link";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -43,6 +44,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         const response = await axios.post("/api/history", {
           username: user.username,
         });
+        console.log("====================================");
+        console.log(response.data);
+        console.log("====================================");
         setHistoryData(response.data);
       } catch (error) {
         console.error("Error fetching history data:", error);
@@ -90,15 +94,17 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             {historyData.length > 0 ? (
               <div className="space-y-2">
                 {historyData.map((item: any, index: number) => (
-                  <Button
-                    key={index}
-                    variant="ghost"
-                    className="w-full justify-start text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-purple-900/50 hover:to-blue-900/50 rounded-lg p-3 transition-all duration-200 border border-transparent hover:border-purple-500/30"
-                  >
-                    <h3 className="text-sm font-medium truncate">
-                      {item.title}
-                    </h3>
-                  </Button>
+                  <Link href={`/chat/${item.id}`}>
+                    <Button
+                      key={index}
+                      variant="ghost"
+                      className="w-full justify-start text-gray-300 hover:text-white hover:bg-gradient-to-r hover:from-purple-900/50 hover:to-blue-900/50 rounded-lg p-3 transition-all duration-200 border border-transparent hover:border-purple-500/30"
+                    >
+                      <h3 className="text-sm font-medium truncate">
+                        {item.title}
+                      </h3>
+                    </Button>
+                  </Link>
                 ))}
               </div>
             ) : (

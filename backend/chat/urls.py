@@ -2,7 +2,6 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    # path("history/save/", save_chat_history, name="save_chat_history"),
     path("get-history/", get_chat_history, name="get_chat_history"),
     path("get-full-chat/", get_chat_history_by_id, name="get_chat_history_by_id"),
     path("create/", create_chat_history, name="create_chat_history"),

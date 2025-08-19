@@ -67,8 +67,6 @@ export default function ChatBot() {
         message: newMessage,
         chat_id: id,
       });
-      console.log(res.data);
-
       return res.data;
     } catch (error) {
       console.error("Error sending message:", error);
@@ -106,7 +104,7 @@ export default function ChatBot() {
 
   return (
     <Header>
-      <div className="max-w-4xl mx-auto px-4 py-6 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 py-6 relative z-10 pt-[125px]">
         <div className="space-y-6 mb-32">
           {messages.map((message) => (
             <div

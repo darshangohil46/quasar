@@ -55,7 +55,7 @@ export default function HomePage() {
   return (
     <Header>
       {/* Main Content */}
-      <main className="flex flex-col items-center justify-center px-6 py-20">
+      <main className="flex flex-col items-center justify-center px-6 py-20 pt-[125px]">
         <div className="w-full max-w-4xl text-center">
           <h1 className="text-5xl font-bold mb-12">
             What can I help you build?
