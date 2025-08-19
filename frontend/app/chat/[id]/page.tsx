@@ -10,6 +10,7 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import { ROLE } from "@/lib/utils";
 import Loading from "@/app/Loading";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 interface Message {
   id: string;
@@ -28,8 +29,6 @@ interface Message {
 export default function ChatBot() {
   const params = useParams();
   const { id } = params; // chat id from URL
-  console.log(id);
-
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -68,6 +67,8 @@ export default function ChatBot() {
         message: newMessage,
         chat_id: id,
       });
+      console.log(res.data);
+
       return res.data;
     } catch (error) {
       console.error("Error sending message:", error);
@@ -121,13 +122,17 @@ export default function ChatBot() {
               )}
 
               <div
-                className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-2xl shadow-lg transition-all duration-300 hover:scale-105 ${
+                className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-2xl shadow-lg transition-all duration-300 ${
                   message.role === "user"
                     ? "bg-gradient-to-r from-blue-700 via-blue-700 to-blue-600 text-white shadow-lg shadow-purple-500/30"
-                    : "bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800 text-gray-100 border border-purple-500/20 shadow-md backdrop-blur-sm"
+                    : "!max-w-[100%] w-full bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800 text-gray-100 border border-purple-500/20 shadow-md backdrop-blur-sm"
                 }`}
               >
-                <p className="text-sm leading-relaxed">{message.content}</p>
+                {message.role === "assistant" ? (
+                  <MarkdownRenderer content={message.content} />
+                ) : (
+                  <p className="text-sm leading-relaxed">{message.content}</p>
+                )}
                 <p className="text-xs mt-2 opacity-70">
                   {new Date(message.timestamp).toLocaleTimeString([], {
                     hour: "2-digit",
