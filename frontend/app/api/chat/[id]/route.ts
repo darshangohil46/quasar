@@ -7,9 +7,10 @@ export async function POST(
 ) {
   try {
     const { id } = params;
+    const { username } = await req.json();
     const res = await axios.post(
       `${process.env.BACKEND_API_URL}/api/chat/get-full-chat/`,
-      { chat_id: id },
+      { chat_id: id, username: username },
       {
         headers: {
           "Content-Type": "application/json",

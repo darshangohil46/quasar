@@ -7,10 +7,12 @@ import { Card } from "@/components/ui/card";
 import { Send, Bot, User } from "lucide-react";
 import Header from "@/components/Header";
 import axios from "axios";
-import { useParams } from "next/navigation";
-import { ROLE } from "@/lib/utils";
+import { useParams, useRouter } from "next/navigation";
+import { ALLROUTER, ROLE } from "@/lib/utils";
 import Loading from "@/app/Loading";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
@@ -28,6 +30,8 @@ interface Message {
 
 export default function ChatBot() {
   const params = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
   const { id } = params; // chat id from URL
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -48,18 +52,24 @@ export default function ChatBot() {
     setLoading(true);
 
     const fetchChat = async () => {
+      if (!user) return;
+
       try {
-        const res = await axios.post(`/api/chat/${id}`);
+        const res = await axios.post(`/api/chat/${id}`, {
+          username: user?.username,
+        });
         setMessages(res.data.data || []);
       } catch (error) {
         console.error("Error loading chat:", error);
         setLoading(false);
+        toast.error("Chat Not Found");
+        router.push(ALLROUTER.HOME);
       } finally {
         setLoading(false);
       }
     };
     fetchChat();
-  }, [id]);
+  }, [id, user]);
 
   const handleSendToBackend = async (newMessage: Message) => {
     try {
@@ -98,7 +108,7 @@ export default function ChatBot() {
     setIsTyping(false);
   };
 
-  if (loading) {
+  if (loading || messages.length <= 0) {
     return <Loading />;
   }
 
@@ -169,7 +179,7 @@ export default function ChatBot() {
           <div ref={messagesEndRef} />
         </div>
       </div>
-      <div className="fixed bottom-0 left-0 right-0 bg-gray-900/70 backdrop-blur-md border-t border-purple-500/30 shadow-xl z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-gray-900/70 backdrop-blur-md border-t border-purple-500/30 shadow-xl z-20">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <Card className="p-2 bg-gradient-to-br from-gray-800/90 via-gray-900/90 to-gray-800/90 border border-purple-500/30 shadow-lg shadow-purple-600/30 backdrop-blur-sm">
             <div className="flex gap-2">

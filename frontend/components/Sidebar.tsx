@@ -44,9 +44,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         const response = await axios.post("/api/history", {
           username: user.username,
         });
-        console.log("====================================");
-        console.log(response.data);
-        console.log("====================================");
         setHistoryData(response.data);
       } catch (error) {
         console.error("Error fetching history data:", error);
@@ -61,7 +58,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-40">
+    <div className="fixed inset-0 z-50">
       <div
         className={`fixed inset-0 bg-black/60 backdrop-blur-sm transition-all duration-300 ${
           isOpen ? "opacity-100" : "opacity-0"
@@ -71,7 +68,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <aside
         ref={sidebarRef}
-        className={`fixed top-0 left-0 w-72 h-full bg-gradient-to-br from-gray-800/95 via-gray-900/95 to-purple-950/95 text-white shadow-2xl z-50 backdrop-blur-xl border-r border-purple-500/30 transform transition-all duration-500 ease-in-out ${
+        className={`fixed top-0 left-0 w-72 h-full flex flex-col bg-gradient-to-br from-gray-800/95 via-gray-900/95 to-purple-950/95 text-white shadow-2xl z-50 backdrop-blur-xl border-r border-purple-500/30 transform transition-all duration-500 ease-in-out ${
           isOpen ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"
         }`}
       >
@@ -89,7 +86,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </Button>
         </div>
 
-        <div className="p-4 overflow-y-auto h-full">
+        <div className="p-4 overflow-y-auto h-scre">
           <div className="space-y-3">
             {historyData.length > 0 ? (
               <div className="space-y-2">
@@ -108,7 +105,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 ))}
               </div>
             ) : (
-              /* Enhanced empty state with better styling */
               <div className="p-6 bg-gradient-to-r from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-700/50 backdrop-blur-sm">
                 <div className="text-center">
                   <div className="w-12 h-12 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
