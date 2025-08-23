@@ -48,7 +48,6 @@ def get_chat_history_by_id(request):
                 return JsonResponse(
                     {"success": False, "error": "Chat not found"}, status=404
                 )
-            print(histories)
             return JsonResponse({"success": True, "data": histories}, safe=False)
         except User.DoesNotExist:
             return JsonResponse(
@@ -173,67 +172,3 @@ def get_chat_history(request):
             return JsonResponse({"error": str(e)}, status=500)
     else:
         return JsonResponse({"error": "Invalid HTTP method"}, status=405)
-
-
-# done
-# generate output using history and user input
-# def chat_with_groq(history):
-#     if not len(history) > 0:
-#         return {"status": "error", "error": "History is not available"}
-
-#     try:
-#         # Predefined system/context data
-#         predefined_messages = [
-#             {
-#                 "role": SYSTEM,
-#                 "content": (
-#                     "You are a helpful Quasar AI assistant. Always reply politely. "
-#                     "Keep answers short and clear unless detailed explanation is asked."
-#                 ),
-#             },
-#             {
-#                 "role": ASSISTANT,
-#                 "content": "Hello! I'm here to help you with your questions.",
-#             },
-#         ]
-
-#         # Convert user history to groq format
-#         groq_messages = [
-#             {"role": msg.get("role", USER), "content": msg.get("content", "")}
-#             for msg in history
-#         ]
-
-#         # Merge predefined + history
-#         all_messages = predefined_messages + groq_messages
-
-#         response = requests.post(
-#             "https://api.groq.com/openai/v1/chat/completions",
-#             headers={
-#                 "Authorization": f"Bearer {GROQ_API_KEY}",
-#                 "Content-Type": "application/json",
-#             },
-#             json={
-#                 "model": GROQ_AI_MODEL,
-#                 "messages": all_messages,
-#             },
-#         )
-
-#         response.raise_for_status()
-#         data = response.json()
-
-#         ai_content = data["choices"][0]["message"]["content"]
-
-#         assistant_message = {
-#             "status": "success",
-#             "data": {
-#                 "id": str(uuid.uuid4()),
-#                 "content": ai_content,
-#                 "role": ASSISTANT,
-#                 "timestamp": datetime.now().isoformat(),
-#             },
-#         }
-
-#         return assistant_message
-
-#     except Exception as e:
-#         return {"status": "error", "error": str(e)}

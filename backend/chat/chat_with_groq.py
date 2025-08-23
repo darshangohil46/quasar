@@ -1,7 +1,7 @@
 import requests
 import uuid
 from datetime import datetime
-import os
+import os, re
 
 # Constants
 SYSTEM = "system"
@@ -17,18 +17,13 @@ def format_ai_response(content):
     """
     formatted_content = content.strip()
 
-    # Add proper spacing around code blocks
-    import re
-
     formatted_content = re.sub(r"```(\w+)?\n", r"\n```\1\n", formatted_content)
     formatted_content = re.sub(r"\n```\n", r"\n```\n\n", formatted_content)
 
     # Ensure proper spacing around headers
     formatted_content = re.sub(r"\n(#{1,6})\s", r"\n\n\1 ", formatted_content)
-
     # Add spacing around lists
     formatted_content = re.sub(r"\n(\d+\.|\*|\-)\s", r"\n\n\1 ", formatted_content)
-
     # Clean up multiple newlines
     formatted_content = re.sub(r"\n{3,}", "\n\n", formatted_content)
 
@@ -136,17 +131,3 @@ def analyze_response(content):
         ),  # ~200 words per minute
     }
     return analysis
-
-
-if __name__ == "__main__":
-    # Test the enhanced chat function
-    test_history = [
-        {
-            "role": "user",
-            "content": "Can you show me a Python function to calculate fibonacci numbers?",
-        }
-    ]
-
-    result = chat_with_groq(test_history)
-    print("Enhanced AI Response:")
-    print(result)
