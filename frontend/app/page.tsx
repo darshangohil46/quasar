@@ -55,6 +55,19 @@ export default function HomePage() {
     <Header>
       {/* Main Content */}
       <main className="flex flex-col items-center justify-center px-6 py-20 pt-[125px]">
+        <div className="pb-10">
+          {user?.username && (user.firstName || user.lastName) && (
+            <div className="flex justify-center space-x-4 p-4 bg-blue-100 rounded-lg shadow-md">
+              <div className="text-lg font-semibold text-blue-800">
+                Welcome,{" "}
+                <span className="text-blue-900">
+                  {user.firstName[0].toUpperCase() + user.firstName.slice(1)}{" "}
+                  {user.lastName[0].toUpperCase() + user.lastName.slice(1)}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
         <div className="w-full max-w-4xl text-center">
           <h1 className="text-5xl font-bold mb-12">
             What can I help you build?

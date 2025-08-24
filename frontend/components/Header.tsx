@@ -2,7 +2,7 @@
 import { useState } from "react";
 import type React from "react";
 
-import { Menu, Bot, Sparkles, LogOut } from "lucide-react";
+import { Menu, Bot, LogOut } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { ALLROUTER, CHATBOT_NAME } from "@/lib/utils";
 import Link from "next/link";
