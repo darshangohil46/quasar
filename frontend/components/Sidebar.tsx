@@ -111,9 +111,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     <Sparkles className="w-6 h-6 text-gray-400" />
                   </div>
                   <p className="text-gray-400 text-sm font-medium">
-                    {!loading && historyData.length > 0
+                    {/* {loading && historyData.length > 0
                       ? "No History Available"
-                      : "Loading history..."}
+                      : "Loading history..."} */}
+
+                    {loading && "Loading history..."}
+
+                    {!loading &&
+                      historyData.length === 0 &&
+                      "No History Available"}
                   </p>
                   <p className="text-gray-500 text-xs mt-1">
                     Start a conversation to see your chat history
